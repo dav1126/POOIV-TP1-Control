@@ -27,6 +27,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -43,55 +45,129 @@ import javafx.stage.WindowEvent;
  */
 public class FXMLController_2 implements Initializable, Observer{
 
+	/**
+	 * Mot en consultation dans ce controleur
+	 */
 	Mot motAConsulter;
+	
+	/**
+	 * ImageView servant à afficher l'image associée au mot en consultation
+	 */
 	ImageView imgView;
+	
+	/**
+	 * Stage bidon servant à afficher une fenetre de FileChooser
+	 */
 	Stage test;
+	
+	/**
+	 * String indiquant le chemin d'accès vers le fichier de l'image
+	 * associée au mot
+	 */
 	String imageDuMotPath;
 	
+	/**
+	 * Gestionnaire d'événement utilisé pour bloquer/permettre les drags
+	 */
+	EventHandler<DragEvent> dragEventHandler;
+	
+	/**
+	 * Gestionnaire d'événement utilisé pour bloquer/permettre les clics de
+	 * souris
+	 */
+	EventHandler<MouseEvent> mouseEventHandler;
+	
+	/**
+	 * Controleur principal (FXMLController) qui a lancé ce controleur
+	 */
 	FXMLController mainController;
 	
+	/**
+	 * Controleur de l'imageView contenant l'iamge draggable
+	 */
 	@FXML
 	private DraggableImageControler customImgViewController;
 	
+	/**
+	 * Label servant à afficher le libellé du mot
+	 */
     @FXML
     private Label libelleLabel;
 
+    /**
+     * TextField servant à modifier le libellé du mot
+     */
     @FXML
     private TextField libelleTextField;
 
+    /**
+     * Label servant à afficher le mot Definition
+     */
     @FXML
     private Label definitionTitleLabel;
 
+    /**
+     * Label servant à afficher la définition du mot
+     */
     @FXML
     private Label definitionTextLabel;
-
+    
+    /**
+     * TextArea servant à modifier la definition du mot
+     */
     @FXML
     private TextArea definitionTextTextField;
 
+    /**
+     * Label servant à afficher la date de saisie
+     */
     @FXML
     private Label dateSaisieLabel;
 
+    /**
+     * Label servant à afficher la date de modification du mot
+     */
     @FXML
     private Label dateModifLabel;
 
+    /**
+     * Conteneur renfermant des boutons
+     */
     @FXML
     private HBox buttonsAppliquerAnnulerHBox;
-
+    
+    /**
+     * Boutton servant à modifier le mot
+     */
     @FXML
     private Button modificationButton;
     
+    /**
+     * Conteneur de l'imageView
+     */
     @FXML
     private VBox conteneurImage;
 
+    /**
+     * Boutton servant choisir une image pour le mot
+     */
     @FXML
     private Button chooseImgButton;
 
+    /**
+     * Annule les modifications
+     * @param event
+     */
     @FXML
-    void annulerModifButton(ActionEvent event) {
+    void annulerModifButton() {
     	init();
     	empecherModification();
     }
 
+    /**
+     * Applique les modifications au mot
+     * @param event
+     */
     @FXML
     void appliquerModifButton(ActionEvent event) {
     	
@@ -105,7 +181,7 @@ public class FXMLController_2 implements Initializable, Observer{
     	Mot nouveauMot = new Mot(libelleLabel.getText(), LocalDate.parse(dateSaisieLabel.getText()));
     	nouveauMot.setDefinition(definitionTextLabel.getText());
     	nouveauMot.setDateModif(LocalDate.now());
-    	nouveauMot.setImg("file:" +imageDuMotPath);
+    	nouveauMot.setImg(imageDuMotPath);
     	FabriqueDictionnaire.getInstance().getDictionnaire().put(nouveauMot.getLibelle(), nouveauMot);
     	empecherModification();
     	mainController.model.flagModif = true;
@@ -123,6 +199,10 @@ public class FXMLController_2 implements Initializable, Observer{
     	
     }
 
+    /**
+     * Permet à l'utilisateur de choisir une image pour le mot
+     * @param event
+     */
     @FXML
     void choisirImage(ActionEvent event) 
     {
@@ -146,14 +226,9 @@ public class FXMLController_2 implements Initializable, Observer{
 		}	
     }
 
-    @FXML
-    void fermerButton(ActionEvent event) {
-    	fermerLaFenetre();
-    	
-    }
-
     /**
-     * Active les controles necessaires a la modification et desactive ceux de la consultation
+     * Active les controles necessaires a la modification et desactive ceux 
+     * de la consultation
      * @param event
      */
     @FXML
@@ -166,20 +241,47 @@ public class FXMLController_2 implements Initializable, Observer{
     	chooseImgButton.setDisable(false);
     	buttonsAppliquerAnnulerHBox.setVisible(true);
     	modificationButton.setVisible(false);
+    	
+    	//Allow mouse and drag events on the draggable image
+    	imgView.removeEventFilter(MouseEvent.ANY, mouseEventHandler);
+    	imgView.removeEventFilter(DragEvent.ANY, dragEventHandler);
     }
     
-    public void initialize(URL location, ResourceBundle resources){
+    public void initialize(URL location, ResourceBundle resources)
+    {
     	
     	imgView = (ImageView)conteneurImage.getChildren().get(0);
     	imgView.setPreserveRatio(true);
     	imgView.setFitWidth(175);
     	imgView.setFitHeight(175);
     	
-    	
+    	//Make a mouse eventhandler to disable the clicks on the imgView
+    	mouseEventHandler = new EventHandler<MouseEvent>()
+    	{
+			@Override
+			public void handle(MouseEvent event)
+			{
+				event.consume();
+			}	
+		}
+		;
+		
+		//Make a drag eventhandler to disable the drags on the imgView
+		dragEventHandler = new EventHandler<DragEvent>()
+		    	{
+					@Override
+					public void handle(DragEvent event)
+					{
+						event.consume();
+					}	
+				}
+				;  
     }
     
     /**
-     * Methode qui initialise la fenetre avec les informations provenant du motSelectionne
+     * Methode qui initialise la fenetre avec les informations en fonction du
+     * mot en consultation. Défini aussi cet instance en tant qu'observateur et
+     * active des gestionnaires d'événements relatifs au drag et au click.
      */
     public void init()
     {
@@ -204,7 +306,14 @@ public class FXMLController_2 implements Initializable, Observer{
     	else
     		dateModifLabel.setText("");	
     	
+    	//Set this instance as an observer of the imgView controller
     	customImgViewController.addObserver(this);
+    	
+    	//Activate the mouseEventHandler to prevent mouse clicks on the draggable image
+		imgView.addEventFilter(MouseEvent.ANY, mouseEventHandler);
+		
+		//Activate the dragEventHandler to prevent drags on the draggable image
+		imgView.addEventFilter(DragEvent.ANY, dragEventHandler);
     }
     
     /**
@@ -220,35 +329,39 @@ public class FXMLController_2 implements Initializable, Observer{
     	chooseImgButton.setDisable(true);
     	buttonsAppliquerAnnulerHBox.setVisible(false);
     	modificationButton.setVisible(true);
+    	
+    	//Activate the mouseEventHandler to prevent mouse clicks on the draggable image
+    	imgView.addEventFilter(MouseEvent.ANY, mouseEventHandler);
     }
     
     /**
-     * Gère la fermeture d'une fenêtre de consultation
+     * Methode permettant d'associer un mainController à ce controleur
+     * @param c
      */
-    public void fermerLaFenetre()
-    {
-    	Stage currentStage = (Stage) libelleTextField.getScene().getWindow();
-    	mainController.model.supprimerMotEnConsultation(motAConsulter);
-    	currentStage.close();
-    }  
-    
     public void setController(FXMLController c)
     {
     	mainController = c;
     }
     
+    /**
+     * Set le mot passé en paramètre comme mot à consulter
+     * @param mot
+     */
     public void setMotAConsulter(Mot mot)
     {
     	motAConsulter = mot;
     }
     
+    /**
+     * Set l'image du mot dans l'iamgeView
+     */
     public void setImage()
     {
 		if(motAConsulter.getImg().compareTo(Mot.DEFAULT_URL) != 0){
 		    		
 		    		imageDuMotPath = motAConsulter.getImg();
 		    		System.out.println("OH YEAH!: " +imageDuMotPath);
-					imgView.setImage(new ImageLocalisee(imageDuMotPath));			
+					imgView.setImage(new ImageLocalisee("file:"+imageDuMotPath));			
 		    	}
     	else{
     		imageDuMotPath = motAConsulter.getDefaultURL();

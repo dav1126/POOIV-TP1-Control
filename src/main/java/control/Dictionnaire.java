@@ -3,6 +3,7 @@ package control;
 import java.time.LocalDate;
 
 import javafx.application.Application;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -22,37 +23,51 @@ import model.Mot;
 
 public class Dictionnaire extends Application{
 	
-	Stage stage;
+	/**
+	 * Gestionnaire d'événements utilisé pour gérer la fermeture du stage 
+	 * principale
+	 */
+	EventHandler<WindowEvent> mainWindowEventHandler;
 	
 	public static void main(String[] args) {
 		
-		Application.launch(args);
-		/*
-		LocalDate today = LocalDate.now();
-		LocalDate tomorrow = today.plus(1, ChronoUnit.DAYS);
-		LocalDate yesterday = tomorrow.minusDays(2);
-		
-		GestionDictionnaire model = new GestionDictionnaire();
-		ArrayList<Mot> resultats = model.rechMotPartiel(".*abais");
-		
-		resultats = model.rechAvantDateModif(resultats, yesterday);
-		
-		
-		for(Mot mot : resultats){
-			
-			System.out.println(mot.getLibelle());
-		}
-		*/
-		
-		
+		Application.launch(args);		
 	}
 	
-	public void start(Stage pStage) throws Exception{
+	public void start(Stage pStage) throws Exception
+	{
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("../dictionnaire.fxml"));
+		HBox root = (HBox) loader.load();
+		FXMLController mainController = (FXMLController)loader.getController();
+		mainController.setAppStartController(this);
 		
-		HBox root = (HBox) FXMLLoader.load(getClass().getResource("../dictionnaire.fxml"));
 		Scene scene = new Scene(root);
 		pStage.setScene(scene);
 		pStage.setTitle("Dictionnaire");
 		pStage.show();
+		
+		addMainControllerWindowEventHandler(pStage, mainController);
 	}
+
+	/**
+	 * Ajoute un gestionnaire de fenêtre au stage principal pour gérer sa 
+	 * fermeture
+	 * @param stage
+	 * @param mainController
+	 */
+	private void addMainControllerWindowEventHandler(Stage stage, FXMLController mainController)
+	{
+		mainWindowEventHandler = new EventHandler<WindowEvent>()
+		{
+			@Override
+			public void handle(WindowEvent event)
+			{
+				event.consume();
+				mainController.quitter();	
+			}	
+		};
+		stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, mainWindowEventHandler);
+	}
+	
+
 }

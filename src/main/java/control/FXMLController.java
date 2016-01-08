@@ -25,6 +25,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -38,70 +39,126 @@ import control.FXMLController_2;
 
 public class FXMLController implements Initializable, Observer{
 	
+	/**
+	 * Objet GestionDictionnaire servant à accéder aux méthodes du modèle
+	 */
 	GestionDictionnaire model;
-		
+	
+	/**
+	 * Pointeur vers le controleur de démarrage du programme
+	 */
+	Dictionnaire appStartController;
+	
+	/**
+	 * CheckBox pour activer la recherche selon modification avant date
+	 */
 	@FXML
 	private CheckBox checkBoxModifAvant;
 	
+	/**
+	 * CheckBox pour activer la recherche selon modification apres date
+	 */
 	@FXML
     private CheckBox checkBoxModifApres;
 	
+	/**
+	 * CheckBox pour activer la recherche selon la présence d'image
+	 */
 	@FXML
     private CheckBox checkBoxImage;
 	
+	/**
+	 * Champ de recherche
+	 */
 	@FXML
     private TextField motInput;
 
+	/**
+	 * Radio button pour la recherche par mot exact
+	 */
     @FXML
     private RadioButton radioMotExact;
 
+    /**
+     * Group de bouttons radio (mot exact, mot partiel)
+     */
     @FXML
     private ToggleGroup mot;
 
+    /**
+	 * Radio button pour la recherche par mot partiel
+	 */
     @FXML
     private RadioButton radioMotPartiel;
 
+    /**
+	 * CheckBox pour activer la recherche la saisie avant telle date
+	 */
     @FXML
     private CheckBox checkBoxSaisieAvant;
 
+    /**
+     * Control de choix de date
+     */
     @FXML
     private DatePicker datePickerSaisieAvant;
 
+    /**
+	 * CheckBox pour activer la recherche la saisie apres telle date
+	 */
     @FXML
     private CheckBox checkBoxSaisieApres;
 
+    /**
+     * Control de choix de date
+     */
     @FXML
     private DatePicker datePickerSaisieApres;
 
+    /**
+     * Control de choix de date
+     */
     @FXML
     private DatePicker datePickerModifAvant;
 
+    /**
+     * Control de choix de date
+     */
     @FXML
     private DatePicker datePickerModifApres;
 
+    /**
+     * Boutton qui active la recherche de mots
+     */
     @FXML
     private Button rechercheButton;
 
+    /**
+     * Boutton pour ajouter un mot
+     */
     @FXML
     private Button ajouterButton;
-    
-    @FXML
-    private Button quitterButton;
 
-    @FXML
-    private ImageView imgMot;
-
+    /**
+     * Liste servant à afficher et a sélectionner les résultats de la recherche
+     */
     @FXML
     private ListView<String> listViewResultats;
 
+    /**
+     * Boutton pour consulter un mot
+     */
     @FXML
     private Button consulterButton;
 
+    /**
+     * Boutton pour supprimer un mot
+     */
     @FXML
     private Button supprimerButton;
     
     /**
-     * Methode qui gere la recherche lorsque le bouton recherche est cliquer
+     * Methode qui gere la recherche lorsque le bouton recherche est cliqué
      * @param event
      */
     @FXML
@@ -224,6 +281,10 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
 
+    /**
+     * Méthode servant à ajouter un mot au dictionnaire
+     * @param event
+     */
     @FXML
     void ajouterMot(ActionEvent event) {
     	
@@ -241,16 +302,10 @@ public class FXMLController implements Initializable, Observer{
     			alert.setContentText("Mot ajouté avec succès!");
     			alert.setHeaderText(null);
     			
-    			ButtonType edit = new ButtonType("Consulter");
     			ButtonType ok = new ButtonType("Ok");
         		        		
-        		alert.getButtonTypes().setAll(edit, ok);
+        		alert.getButtonTypes().setAll(ok);
         		Optional <ButtonType> result = alert.showAndWait();
-        		
-        		if(result.get() ==  edit){
-        		
-        			consulterMot();
-        		}
     		}
     		else{
     			
@@ -271,6 +326,11 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
 
+    /**
+     * Methode servant a activer le datePicker lorsque le checkbox recherche
+     * après date modif est coché
+     * @param event
+     */
     @FXML
     void enableDPModifApres(ActionEvent event) {
     	
@@ -284,6 +344,11 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
 
+    /**
+     * Methode servant a activer le datePicker lorsque le checkbox recherche
+     * avant date modif est coché
+     * @param event
+     */
     @FXML
     void enableDPModifAvant(ActionEvent event) {
 
@@ -297,6 +362,11 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
 
+    /**
+     * Methode servant a activer le datePicker lorsque le checkbox recherche
+     * après date saisie est coché
+     * @param event
+     */
     @FXML
     void enableDPSaisieApres(ActionEvent event) {
     	
@@ -309,7 +379,12 @@ public class FXMLController implements Initializable, Observer{
     		datePickerSaisieApres.setDisable(true);
     	}
     }
-
+    
+    /**
+     * Methode servant a activer le datePicker lorsque le checkbox recherche
+     * avant date saisie est coché
+     * @param event
+     */
     @FXML
     void enableDPSaisieAvant(ActionEvent event) {
     	
@@ -323,6 +398,11 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
 
+    /**
+     * Methode servant à afficher les détails d'un mot sélectionné dans 
+     * une autre fenêtre
+     * @param event
+     */
     @FXML
     void consulterMot() {    	
     	if(listViewResultats.getSelectionModel().getSelectedItem() != null){
@@ -342,6 +422,7 @@ public class FXMLController implements Initializable, Observer{
 				model.listeResultats.clear();
 		        model.notifyObs(model.listeResultats);	
 				stageConsultation.show();
+				
     		}
     		else
     		{
@@ -363,8 +444,10 @@ public class FXMLController implements Initializable, Observer{
     	}
     }
     
-    @FXML
-    void quitter(ActionEvent event) {
+    /**
+     * Met fin au programme et demande à l'utilisateur s'il veut sauvegarder.
+     */
+    protected void quitter() {
     	
     	if(model.flagModif)
     	{
@@ -399,10 +482,22 @@ public class FXMLController implements Initializable, Observer{
     		System.exit(0);
     }
     
+    /**
+     * Supprime un mot sélectionné du dictionnaire
+     * @param event
+     */
     @FXML
     void supprimerMot(ActionEvent event) {
     	
-    	System.out.println(listViewResultats.getSelectionModel().getSelectedItem());
+    	String msg = model.supprimerMot(listViewResultats.getSelectionModel().getSelectedItem());
+    	   	
+    	Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("Dictionnaire");
+		alert.setContentText(msg);
+		alert.setHeaderText(null);
+		alert.showAndWait();
+		
+		model.flagModif = true;
     }
 
     public void initialize(URL location, ResourceBundle resources){
@@ -410,7 +505,7 @@ public class FXMLController implements Initializable, Observer{
     	model = new GestionDictionnaire();
     	model.addObserver(this);
 		
-    	model.loadDictionnaire();
+    	model.loadDictionnaire();			  	
     }
 
 	@Override
@@ -426,6 +521,11 @@ public class FXMLController implements Initializable, Observer{
     	listViewResultats.setItems(liste);
 	}
 	
+	/**
+	 * Instancie un controleur secondaire pour la fenetre de consultation du mot
+	 * à consulter
+	 * @return
+	 */
 	private Stage loadConsultation()
 	{
 		Stage stageConsultation = null;
@@ -448,12 +548,47 @@ public class FXMLController implements Initializable, Observer{
 			stageConsultation.setScene(sceneConsultation);
 			stageConsultation.setTitle("Consultation");
 			
+			setConsultWindowCloseHandler(stageConsultation, subController);
+			
 		} catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return stageConsultation;	
+	}
+	
+	/**
+	 * Make an event handler to remove the mot from the liste de mot en consultation
+	 * when the window is closed
+	 * @param stageConsult
+	 * @param subController
+	 */
+	private void setConsultWindowCloseHandler(Stage stageConsult, FXMLController_2 subController)
+	{
+		//Make an event handler to remove the mot from the liste de mot en consultation
+	 	//when the stage is closed
+		EventHandler<WindowEvent> windowEventHandlerConsult = new EventHandler<WindowEvent>()
+ 			  {
+ 				  @Override
+ 					public void handle(WindowEvent event)
+ 					{
+ 					  	event.consume();
+ 				    	model.supprimerMotEnConsultation(subController.motAConsulter);
+ 				    	stageConsult.close();
+ 					}	
+ 			  };
+		
+		stageConsult.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, windowEventHandlerConsult);
+	}
+	
+	/**
+	 * Défini le controleur passé en paramètre comme controleur de démarrage
+	 * @param appStartController
+	 */
+	public void setAppStartController(Dictionnaire appStartController)
+	{
+		this.appStartController = appStartController;
 	}
 
 }
